@@ -1,0 +1,4 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({
+  tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', index: true },vehicle:{type:String,required:true,index:true,uppercase:true,trim:true},type:{type:String,enum:['Scheduled service','Repair','Tyre','Inspection','Other'],default:'Scheduled service'},description:{type:String,required:true,trim:true,maxLength:500},vendor:{type:String,trim:true,default:''},cost:{type:Number,min:0,default:0},odometerKm:{type:Number,min:0,default:0},scheduledAt:{type:Date},completedAt:{type:Date},status:{type:String,enum:['Scheduled','In Progress','Completed','Cancelled'],default:'Scheduled',index:true},vehicleStatusBefore:{type:String,enum:['On route','Available','Attention','Maintenance','Offline'],default:'Available'},createdBy:{type:mongoose.Schema.Types.ObjectId,ref:'User'}},{timestamps:true});
+schema.index({vehicle:1,status:1,scheduledAt:1});export default mongoose.model('Maintenance',schema);

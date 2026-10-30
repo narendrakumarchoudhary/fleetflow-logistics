@@ -1,0 +1,21 @@
+import { Router } from 'express';
+import multer from 'multer';
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { mkdir } from 'node:fs/promises';
+import { basename } from 'node:path';
+import { protect, allowRoles } from '../middleware/auth.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+const root = path.resolve(process.env.UPLOAD_DIR || 'storage/uploads');
+await mkdir(root,{recursive:true});
+const allowed = new Map([['application/pdf','.pdf'],['image/jpeg','.jpg'],['image/png','.png'],['image/webp','.webp']]);
+const storage = multer.diskStorage({destination:(_req,_file,cb)=>cb(null,root),filename:(_req,file,cb)=>cb(null,`${randomUUID()}${allowed.get(file.mimetype)||'.bin'}`)});
+const upload = multer({storage,limits:{fileSize:Number(process.env.MAX_UPLOAD_BYTES)||10*1024*1024,files:1},fileFilter:(_req,file,cb)=>allowed.has(file.mimetype)?cb(null,true):cb(new Error('Only PDF, JPG, PNG and WEBP files are accepted'))});
+const router=Router();
+router.get('/:filename',protect,asyncHandler(async(req,res)=>{const filename=basename(req.params.filename);if(filename!==req.params.filename)return res.status(400).json({message:'Invalid file name'});const file=path.join(root,filename);res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Content-Disposition','attachment');res.sendFile(file,err=>{if(err&&!res.headersSent)res.status(404).json({message:'File not found'});});}));
+router.post('/',protect,allowRoles('admin','dispatcher','operator'),upload.single('file'),asyncHandler(async(req,res)=>{
+ if(!req.file)return res.status(400).json({message:'Choose a file to upload'});
+ const base=(process.env.PUBLIC_API_URL||`${req.protocol}://${req.get('host')}`).replace(/\/$/,'');
+ res.status(201).json({file:{originalName:req.file.originalname,mimeType:req.file.mimetype,size:req.file.size,url:`${base}/api/uploads/${req.file.filename}`}});
+}));
+export default router;

@@ -1,0 +1,32 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes: ["mongo_data:/data/db"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  api:
+    build: ./server
+    restart: unless-stopped
+    env_file: ./server/.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/fleetflow
+      PORT: 4000
+      CLIENT_ORIGIN: http://localhost:8080
+      PUBLIC_API_URL: http://localhost:4000
+      UPLOAD_DIR: /app/storage/uploads
+    depends_on:
+      mongo: {condition: service_healthy}
+    ports: ["4000:4000"]
+    volumes: ["fleetflow_uploads:/app/storage/uploads"]
+  web:
+    build: ./client
+    restart: unless-stopped
+    ports: ["8080:80"]
+    depends_on: [api]
+volumes:
+  mongo_data:
+  fleetflow_uploads:

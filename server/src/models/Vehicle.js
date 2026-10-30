@@ -1,0 +1,5 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({
+  tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', index: true },registration:{type:String,required:true,trim:true,uppercase:true,index:true},type:{type:String,enum:['Heavy truck','LCV','Container truck','Refrigerated truck','Pickup','Other'],default:'Heavy truck'},driver:{type:String,trim:true,default:''},capacity:{type:String,required:true,trim:true},status:{type:String,enum:['On route','Available','Attention','Maintenance','Offline'],default:'Available',index:true},location:{type:String,trim:true,default:'Depot'},traccarDeviceId:{type:String,trim:true,default:'',index:true},fuel:{type:Number,min:0,max:100,default:100},documents:[{kind:{type:String,enum:['RC','Insurance','Fitness','Permit','PUC','Other']},number:{type:String,trim:true,default:''},expiresAt:{type:Date},documentUrl:{type:String,trim:true,default:''}}],active:{type:Boolean,default:true}},{timestamps:true});
+schema.index({tenantId:1,registration:1},{unique:true,partialFilterExpression:{tenantId:{$exists:true}}});
+export default mongoose.model('Vehicle',schema);

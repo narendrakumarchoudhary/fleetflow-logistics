@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({
+  tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', index: true },driver:{type:mongoose.Schema.Types.ObjectId,ref:'Driver',required:true,index:true},driverName:{type:String,required:true},date:{type:Date,required:true},checkIn:{type:Date},checkOut:{type:Date},status:{type:String,enum:['Present','Absent','Leave','Half day'],default:'Present'},notes:{type:String,trim:true,maxLength:300,default:''},recordedBy:{type:mongoose.Schema.Types.ObjectId,ref:'User'}},{timestamps:true});schema.index({driver:1,date:1},{unique:true});export default mongoose.model('DriverAttendance',schema);
