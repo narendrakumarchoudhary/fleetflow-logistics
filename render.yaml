@@ -28,7 +28,4 @@ services:
         value: /opt/render/project/src/storage/uploads
       - key: MAX_UPLOAD_BYTES
         value: 10485760
-    disk:
-      name: fleetflow-uploads
-      mountPath: /opt/render/project/src/storage
-      sizeGB: 1
+    
